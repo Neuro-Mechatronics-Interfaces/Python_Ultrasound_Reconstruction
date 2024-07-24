@@ -1,0 +1,4 @@
+trc-data-reader
+matplotlib
+torch
+pillow
