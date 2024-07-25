@@ -1,4 +1,4 @@
-# This script takes the ultrasound image data from the raw data folder and aligns it with the motion capture data.
+# This script takes the ultrasound image dataset from the raw dataset folder and aligns it with the motion capture dataset.
 
 import os
 import re
@@ -16,7 +16,7 @@ def multimodal_alignment_example(trc_path, video_path,
                                  show_cross_corr=False,
                                  show_aligned_signals=False):
 
-    # Load the ultrasound image data
+    # Load the ultrasound image dataset
     def load_data(data_folder):
         data = []
         for file in os.listdir(data_folder):
@@ -35,28 +35,28 @@ def multimodal_alignment_example(trc_path, video_path,
     else:
         raise ValueError("No number found in the file name")
 
-    # Check the current and previous directory for the data folder and make "processed_data" folder
+    # Check the current and previous directory for the dataset folder and make "processed_data" folder
     processed_data_folder = ''
-    if os.path.exists(os.path.join(os.getcwd(), 'data')):
-        if not os.path.exists(os.path.join(os.getcwd(), 'data', 'processed_{}'.format(number))):
-            os.makedirs(os.path.join(os.getcwd(), 'data', 'processed_{}'.format(number)))
-        processed_data_folder = os.path.join(os.getcwd(), 'data', 'processed_{}'.format(number))
-    elif os.path.exists(os.path.join(os.getcwd(), '..', 'data')):
-        if not os.path.exists(os.path.join(os.getcwd(), '..', 'data', 'processed_{}'.format(number))):
-            os.makedirs(os.path.join(os.getcwd(), '..', 'data', 'processed_{}'.format(number)))
-        processed_data_folder = os.path.join(os.getcwd(), '..', 'data', 'processed_{}'.format(number))
+    if os.path.exists(os.path.join(os.getcwd(), 'dataset')):
+        if not os.path.exists(os.path.join(os.getcwd(), 'dataset', 'processed_{}'.format(number))):
+            os.makedirs(os.path.join(os.getcwd(), 'dataset', 'processed_{}'.format(number)))
+        processed_data_folder = os.path.join(os.getcwd(), 'dataset', 'processed_{}'.format(number))
+    elif os.path.exists(os.path.join(os.getcwd(), '..', 'dataset')):
+        if not os.path.exists(os.path.join(os.getcwd(), '..', 'dataset', 'processed_{}'.format(number))):
+            os.makedirs(os.path.join(os.getcwd(), '..', 'dataset', 'processed_{}'.format(number)))
+        processed_data_folder = os.path.join(os.getcwd(), '..', 'dataset', 'processed_{}'.format(number))
     else:
-        raise ValueError("No data folder found")
+        raise ValueError("No dataset folder found")
 
-    # Get the rate and data points from one marker
+    # Get the rate and dataset points from one marker
     mocap_rate = trc_data['OrigDataRate']
     front_pos = np.array(trc_data['Front'])
 
-    # Get the number of data points
+    # Get the number of dataset points
     N_points = front_pos.shape[0]
 
 
-    # get the timestamp of the data
+    # get the timestamp of the dataset
     t_mocap = np.arange(0, N_points) / mocap_rate
     print(t_mocap.shape)
     print("Mocap recording length (s): ", t_mocap[-1])
@@ -96,7 +96,7 @@ def multimodal_alignment_example(trc_path, video_path,
     # Calculate the magnitude of the acceleration
     acc_mag = np.linalg.norm(acc, axis=1)
 
-    # Load the ultrasound data
+    # Load the ultrasound dataset
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Error opening video stream or file")
@@ -118,7 +118,7 @@ def multimodal_alignment_example(trc_path, video_path,
             break
 
         # We need to convert the 2D frames into a 1D signal where the pixel displacement in the images can correlate with
-        # the acceleration magnitude of the motion capture data. This way we can synchronize the 2 data modalities.
+        # the acceleration magnitude of the motion capture dataset. This way we can synchronize the 2 dataset modalities.
         if prev_frame is not None:
             diff = cv2.absdiff(frame, prev_frame) # Gets the difference between each frame
             diff_sum = cv2.sumElems(diff) # Converts the 2D signal into a 1-by-4,
@@ -139,7 +139,7 @@ def multimodal_alignment_example(trc_path, video_path,
     cv2.destroyAllWindows()
 
     us_pxdf = np.array(us_pxdf) / np.max(us_pxdf) # Normalize the pixel displacement signal
-    print("New shape of the ultrasound data:")
+    print("New shape of the ultrasound dataset:")
     print(us_pxdf.shape)
     t_us = np.arange(0, us_pxdf.shape[0]) / frame_rate
     print("New video length (s):", t_us[-1])
@@ -151,14 +151,14 @@ def multimodal_alignment_example(trc_path, video_path,
         plt.ylabel('Pixel Displacement')
         plt.show()
 
-    # Do some quick analysis to get start and end frame times for the video data to use
-    # Find the time in the data where the rate of change is greater than 0.1
+    # Do some quick analysis to get start and end frame times for the video dataset to use
+    # Find the time in the dataset where the rate of change is greater than 0.1
     start_frame = np.where(np.diff(us_pxdf) > 0.1)[0][0]
     print("Starting frame: ", start_frame)
     end_frame = np.where(np.diff(us_pxdf) > 0.1)[0][-1]
     print("Ending frame: ", end_frame)
 
-    # Downsample the acceleration data to match the ultrasound data
+    # Downsample the acceleration dataset to match the ultrasound dataset
     def downsample_by_averaging(source_array, target_length):
         # Calculate the segment size
         segment_size = len(source_array) / target_length
@@ -204,7 +204,7 @@ def multimodal_alignment_example(trc_path, video_path,
         us_pxdf = us_pxdf[-int(t_shift * frame_rate):]
 
     t_us_aligned = np.arange(0, us_pxdf.shape[0]) / frame_rate
-    print("New ultrasound data length with zero pad (s):", t_us_aligned[-1])
+    print("New ultrasound dataset length with zero pad (s):", t_us_aligned[-1])
 
     if show_aligned_signals:
         # setting up figure and subplots
@@ -226,7 +226,7 @@ def multimodal_alignment_example(trc_path, video_path,
         plt.show()
 
 
-    # Save the shift data to a file file
+    # Save the shift dataset to a file file
     with open(os.path.join(processed_data_folder, 'alignment_data.txt'), 'w') as f:
         f.write('Time displacement (lag) between signals (s): {}\n'.format(t_shift))
         f.write('Max Correlation Value: {}\n'.format(max(cross_corr)))
@@ -240,14 +240,14 @@ def multimodal_alignment_example(trc_path, video_path,
 
 if __name__ == '__main__':
 
-    print("This example script demonstrates how to align ultrasound and motion capture data.")
+    print("This example script demonstrates how to align ultrasound and motion capture dataset.")
 
-    # Path to the folder with the mocap data
+    # Path to the folder with the mocap dataset
     mocap_path = r'G:\Shared drives\NML_shared\DataShare\Ultrasound_Human_Healthy\062724\mocap\Session1'
     file_name = 'Recording002.trc'
     trc_path = os.path.join(mocap_path, file_name)
 
-    # Path to the folder with the ultrasound data
+    # Path to the folder with the ultrasound dataset
     ultrasound_path = r'G:\Shared drives\NML_shared\DataShare\Ultrasound_Human_Healthy\062724\video'
     video_filename = 'raw002.mp4'
     video_path = os.path.join(ultrasound_path, video_filename)

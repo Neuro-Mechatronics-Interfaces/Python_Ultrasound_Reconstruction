@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 def load_video(video_path, show_video=False, crop_width=0):
-    # Load the ultrasound image data
+    # Load the ultrasound image dataset
     cap = cv2.VideoCapture(video_path)
     img_size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     frame_rate = cap.get(cv2.CAP_PROP_FPS)
@@ -219,23 +219,23 @@ def load_data(data_folder):
 
 def synchronize_data(frame_data, pose_data, alignment_file):
 
-    print("Synchronizing data...", end='')
+    print("Synchronizing dataset...", end='')
     # Get the time shift lag and video frame rate
     time_shift_lag = get_time_shift_lag(alignment_file, 'lag')
     video_rate = alignment_file['Ultrasound Video Frame Rate']
     mocap_rate = alignment_file['Mocap Data Rate']
 
-    # Add the time shift lag to the pose data
+    # Add the time shift lag to the pose dataset
     pose_data['Time'] = pose_data['Time'] + time_shift_lag
 
-    # Downsample the pose data to match the video frame rate
+    # Downsample the pose dataset to match the video frame rate
     pose_data_ds = downsample_by_averaging(pose_data, len(frame_data))
 
     # Get the start and end frame from the alignment file
     start_frame = int(alignment_file['Start Frame'])
     end_frame = int(alignment_file['End Frame'])
 
-    # For each video frame (between the specified start and end frame), get the corresponding pose data
+    # For each video frame (between the specified start and end frame), get the corresponding pose dataset
     pose_data_sync = pose_data_ds[start_frame:end_frame]
 
     frame_data_sync = frame_data[start_frame:end_frame]
@@ -255,18 +255,18 @@ def downsample_by_averaging(source_array, target_length):
     return downsampled_array
 
 def get_processed_data_folder(number):
-    # Check the current and previous directory for the data folder and make "processed_data" folder
+    # Check the current and previous directory for the dataset folder and make "processed_data" folder
     processed_data_folder = ''
-    if os.path.exists(os.path.join(os.getcwd(), 'data')):
-        if not os.path.exists(os.path.join(os.getcwd(), 'data', 'processed_{}'.format(number))):
-            os.makedirs(os.path.join(os.getcwd(), 'data', 'processed_{}'.format(number)))
-        processed_data_folder = os.path.join(os.getcwd(), 'data', 'processed_{}'.format(number))
-    elif os.path.exists(os.path.join(os.getcwd(), '..', 'data')):
-        if not os.path.exists(os.path.join(os.getcwd(), '..', 'data', 'processed_{}'.format(number))):
-            os.makedirs(os.path.join(os.getcwd(), '..', 'data', 'processed_{}'.format(number)))
-        processed_data_folder = os.path.join(os.getcwd(), '..', 'data', 'processed_{}'.format(number))
+    if os.path.exists(os.path.join(os.getcwd(), 'dataset')):
+        if not os.path.exists(os.path.join(os.getcwd(), 'dataset', 'processed_{}'.format(number))):
+            os.makedirs(os.path.join(os.getcwd(), 'dataset', 'processed_{}'.format(number)))
+        processed_data_folder = os.path.join(os.getcwd(), 'dataset', 'processed_{}'.format(number))
+    elif os.path.exists(os.path.join(os.getcwd(), '..', 'dataset')):
+        if not os.path.exists(os.path.join(os.getcwd(), '..', 'dataset', 'processed_{}'.format(number))):
+            os.makedirs(os.path.join(os.getcwd(), '..', 'dataset', 'processed_{}'.format(number)))
+        processed_data_folder = os.path.join(os.getcwd(), '..', 'dataset', 'processed_{}'.format(number))
     else:
-        raise ValueError("No data folder found")
+        raise ValueError("No dataset folder found")
     return processed_data_folder
 
 def transform_pixels_to_metric(frame_data):
@@ -277,24 +277,24 @@ def transform_pixels_to_metric(frame_data):
 def reconstruction_example(pose_path, video_path,
                            show_3d_reconstruction=False):
 
-    # Load ultrasound video data
+    # Load ultrasound video dataset
     frame_data = load_video(video_path, show_video=False, crop_width=300)
 
-    # Load pose data from a csv file
+    # Load pose dataset from a csv file
     pose_data = pd.read_csv(pose_path)
 
-    # Get the config data
+    # Get the config dataset
     processed_data_folder = get_processed_data_folder(get_number_from_filename(video_path))
     alignment_file = load_config_data(processed_data_folder, 'alignment_data.txt')
 
-    # Synchronize the video and pose data
+    # Synchronize the video and pose dataset
     frame_data_sync, pose_data_sync = synchronize_data(frame_data, pose_data, alignment_file)
 
-    # Transform the frame data from pixels to metric
+    # Transform the frame dataset from pixels to metric
     #frame_data_sync_mm = transform_pixels_to_metric(frame_data_sync)
     frame_data_sync_mm = frame_data_sync
 
-    # Get the transform and rotation data from the pose data
+    # Get the transform and rotation dataset from the pose dataset
     # t should have shape (n, 3) and R with shape (n, 3, 3)
     t = pose_data_sync[:,:3]
     rot_np = pose_data_sync[:,3:]
@@ -310,7 +310,7 @@ def reconstruction_example(pose_path, video_path,
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    # Plot the pose and image data
+    # Plot the pose and image dataset
     #for idx in range(0, len(frame_data_sync)):
     #    plotImage(ax, frame_data_sync[idx], R[idx], t[idx])
 
@@ -329,19 +329,19 @@ def reconstruction_example(pose_path, video_path,
 
 if __name__ == '__main__':
     # This example demonstrates visualizing 2D images in a 3D space
-    # The pose data is processed from '2_pose_extraction.py' file
+    # The pose dataset is processed from '2_pose_estimation.py' file
 
     # Notes:
     # 1) From pixel to metric, 265 pixels is the equivalent of 1cm spacing in the images (or 26.5 pixels per mm).
-    # 2) Image data is in pixels, pose data is in mm
+    # 2) Image dataset is in pixels, pose dataset is in mm
     # 3) The offset from the origin point to the middle edge of the probe is (-65, -70, -115) mm
 
-    # Path to the folder with the mocap data
-    pose_path = os.path.join(os.getcwd(), '..', 'data', 'processed_002')
+    # Path to the folder with the mocap dataset
+    pose_path = os.path.join(os.getcwd(), '..', 'dataset', 'processed_002')
     pose_name = 'pose_data.csv'
     trc_path = os.path.join(pose_path, pose_name)
 
-    # Path to the folder with the ultrasound data
+    # Path to the folder with the ultrasound dataset
     ultrasound_path = r'G:\Shared drives\NML_shared\DataShare\Ultrasound_Human_Healthy\062724\video'
     video_filename = 'raw002.mp4'
     video_path = os.path.join(ultrasound_path, video_filename)

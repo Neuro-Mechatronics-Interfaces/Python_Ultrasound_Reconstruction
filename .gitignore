@@ -1,5 +1,5 @@
 .idea
-data
+dataset/
 py_us
 examples/__pycache__
 examples/*.png
